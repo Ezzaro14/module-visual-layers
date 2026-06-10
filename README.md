@@ -32,17 +32,6 @@ composer config repositories.ezzaro14-module-visual-layers vcs https://github.co
 composer require ezzaro14/module-visual-layers:dev-main
 ```
 
-### Install From A Local Path Repository
-
-For local development:
-
-```bash
-composer config repositories.ezzaro14-module-visual-layers path ../magento-packages/module-visual-layers
-composer require ezzaro14/module-visual-layers:@dev
-```
-
-Adjust the path so it points from the Magento project root to this module directory.
-
 ### Enable The Magento Module
 
 From the Magento root:
