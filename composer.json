@@ -1,0 +1,21 @@
+{
+  "name": "ezzaro14/module-visual-layers",
+  "description": "Magento 2 module for configurable visual layer sections with responsive image markers and accordion content.",
+  "type": "magento2-module",
+  "license": "MIT",
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Ezzar\\VisualLayers\\": ""
+    }
+  },
+  "require": {
+    "php": "^8.1 || ^8.2 || ^8.3",
+    "magento/framework": "*",
+    "magento/module-backend": "*",
+    "magento/module-catalog": "*",
+    "magento/module-media-storage": "*"
+  }
+}
