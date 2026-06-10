@@ -1,0 +1,128 @@
+<?php
+declare(strict_types=1);
+
+use Ezzar\VisualLayers\ViewModel\VisualLayers;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var VisualLayers $viewModel */
+
+$viewModel = $block->getData('view_model');
+$product = $viewModel->getCurrentProduct();
+$visual = $viewModel->getVisual($product);
+
+if (!$product || !$visual) {
+    return;
+}
+
+$layers = $viewModel->getLayers($visual)->getItems();
+$imageUrl = $viewModel->getImageUrl($visual);
+
+if (!$imageUrl || !$layers) {
+    return;
+}
+
+$firstLayer = reset($layers);
+$defaultOpen = $firstLayer ? (int) $firstLayer->getId() : 0;
+$heading = (string) $visual->getData('frontend_title') ?: (string) $visual->getData('title');
+$alt = (string) $visual->getData('image_alt') ?: $product->getName() . ' visual layers';
+?>
+
+<section class="mx-auto w-full max-w-screen-xl px-4 mb-8 text-gray-700 lg:px-6 lg:mb-14"
+         x-data="{ openLayer: <?= (int) $defaultOpen ?> }">
+    <h3 class="relative left-1/2 mb-8 flex -translate-x-1/2 items-center gap-4 px-4 text-2xl font-semibold text-slate-900 md:text-3xl">
+        <span class="h-px min-w-0 flex-1 bg-neutral-600/20" aria-hidden="true"></span>
+        <span class="min-w-0 text-center">
+            <?= $escaper->escapeHtml($heading) ?>
+        </span>
+        <span class="h-px min-w-0 flex-1 bg-neutral-600/20" aria-hidden="true"></span>
+    </h3>
+
+    <div class="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
+        <div class="order-2 min-w-0 lg:order-1">
+            <div>
+                <?php foreach ($layers as $layer): ?>
+                    <?php
+                    $layerId = (int) $layer->getId();
+                    $panelId = 'visual-layer-panel-' . $layerId;
+                    $panelRef = 'visualLayerPanel' . $layerId;
+                    $buttonId = 'visual-layer-button-' . $layerId;
+                    $label = (string) $layer->getData('marker_label') ?: (string) $layer->getData('sort_order');
+                    ?>
+                    <article class="border-t border-slate-200">
+                        <button type="button"
+                                id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                                class="group px-4 flex w-full cursor-pointer items-center gap-3.5 border-0 bg-transparent py-4 text-left text-slate-800 transition hover:text-slate-900"
+                                :aria-expanded="openLayer === <?= (int) $layerId ?> ? 'true' : 'false'"
+                                aria-controls="<?= $escaper->escapeHtmlAttr($panelId) ?>"
+                                @click="openLayer = openLayer === <?= (int) $layerId ?> ? null : <?= (int) $layerId ?>">
+                            <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold"
+                                  :class="openLayer === <?= (int) $layerId ?> ? 'border-slate-700 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-800 group-hover:border-slate-500'">
+                                <?= $escaper->escapeHtml($label) ?>
+                            </span>
+                            <span class="min-w-0 px-4 flex-1 text-base font-semibold text-slate-900">
+                                <?= $escaper->escapeHtml((string) $layer->getData('title')) ?>
+                            </span>
+                            <span class="text-2xl leading-none text-slate-500" aria-hidden="true"
+                                  x-text="openLayer === <?= (int) $layerId ?> ? '-' : '+'"></span>
+                        </button>
+
+                        <div id="<?= $escaper->escapeHtmlAttr($panelId) ?>"
+                             x-ref="<?= $escaper->escapeHtmlAttr($panelRef) ?>"
+                             role="region"
+                             aria-labelledby="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                             class="overflow-hidden transition-all duration-500 ease-in-out"
+                             :style="openLayer === <?= (int) $layerId ?> ? 'max-height:' + $refs.<?= $escaper->escapeHtmlAttr($panelRef) ?>.scrollHeight + 'px; opacity:1' : 'max-height:0; opacity:0'">
+                            <div class="mx-8 px-8 pb-5 text-sm leading-6 text-slate-600">
+                                <?php if ((string) $layer->getData('what_it_is') !== ''): ?>
+                                    <p class="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                                        <?= $escaper->escapeHtml(__('What it is')) ?>
+                                    </p>
+                                    <p class="mb-4"><?= $escaper->escapeHtml((string) $layer->getData('what_it_is')) ?></p>
+                                <?php endif; ?>
+
+                                <?php if ((string) $layer->getData('what_it_does') !== ''): ?>
+                                    <p class="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                                        <?= $escaper->escapeHtml(__('What it does')) ?>
+                                    </p>
+                                    <p class="mb-0"><?= $escaper->escapeHtml((string) $layer->getData('what_it_does')) ?></p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="order-1 mx-auto w-full max-w-2xl px-4 py-6 lg:order-2 lg:px-10 lg:py-8">
+            <div class="p-3 sm:p-5 lg:p-7">
+                <div class="relative mx-auto w-full">
+                    <img class="block h-auto w-full"
+                         src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                         alt="<?= $escaper->escapeHtmlAttr($alt) ?>"
+                         loading="lazy">
+
+                    <?php foreach ($layers as $layer): ?>
+                        <?php
+                        $layerId = (int) $layer->getId();
+                        $label = (string) $layer->getData('marker_label') ?: (string) $layer->getData('sort_order');
+                        $x = max(0, min(100, (float) $layer->getData('marker_x')));
+                        $y = max(0, min(100, (float) $layer->getData('marker_y')));
+                        ?>
+                        <!-- Coordinates are CSS percentages, so markers track the rendered image box. -->
+                        <button type="button"
+                                class="absolute inline-flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-sm font-bold shadow-lg transition hover:scale-105 focus:scale-105"
+                                style="left: <?= $escaper->escapeHtmlAttr(number_format($x, 2, '.', '')) ?>%; top: <?= $escaper->escapeHtmlAttr(number_format($y, 2, '.', '')) ?>%;"
+                                :class="openLayer === <?= (int) $layerId ?> ? 'border-slate-700 bg-slate-700 text-white' : 'border-slate-300 bg-white text-slate-800'"
+                                @click="openLayer = <?= (int) $layerId ?>"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Show layer %1', $label)) ?>">
+                            <?= $escaper->escapeHtml($label) ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

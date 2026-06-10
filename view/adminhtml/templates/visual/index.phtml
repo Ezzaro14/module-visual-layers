@@ -1,0 +1,63 @@
+<?php
+declare(strict_types=1);
+
+use Ezzar\VisualLayers\Block\Adminhtml\Visual\Index;
+use Magento\Framework\Escaper;
+
+/** @var Index $block */
+/** @var Escaper $escaper */
+
+$visuals = $block->getVisuals();
+?>
+
+<div class="page-main-actions">
+    <div class="page-actions">
+        <a class="action-primary" href="<?= $escaper->escapeUrl($block->getNewUrl()) ?>">
+            <?= $escaper->escapeHtml(__('Add Visual Layer')) ?>
+        </a>
+    </div>
+</div>
+
+<div class="admin__data-grid-wrap">
+    <table class="data-grid">
+        <thead>
+        <tr>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('ID')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Title')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Active')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Updated')) ?></th>
+            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Actions')) ?></th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php if ($visuals->getSize()): ?>
+            <?php foreach ($visuals as $visual): ?>
+                <tr>
+                    <td><?= (int) $visual->getId() ?></td>
+                    <td><?= $escaper->escapeHtml((string) $visual->getData('title')) ?></td>
+                    <td><?= $visual->getData('is_active') ? $escaper->escapeHtml(__('Yes')) : $escaper->escapeHtml(__('No')) ?></td>
+                    <td><?= $escaper->escapeHtml((string) $visual->getData('updated_at')) ?></td>
+                    <td>
+                        <a href="<?= $escaper->escapeUrl($block->getEditUrl((int) $visual->getId())) ?>">
+                            <?= $escaper->escapeHtml(__('Edit')) ?>
+                        </a>
+                        <form method="post"
+                              action="<?= $escaper->escapeUrl($block->getDeleteUrl((int) $visual->getId())) ?>"
+                              style="display: inline;"
+                              onsubmit="return confirm('<?= $escaper->escapeJs(__('Delete this visual layer?')) ?>');">
+                            <?= $block->getBlockHtml('formkey') ?>
+                            <button type="submit" class="action-delete">
+                                <?= $escaper->escapeHtml(__('Delete')) ?>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="5"><?= $escaper->escapeHtml(__('No visual layers have been created.')) ?></td>
+            </tr>
+        <?php endif; ?>
+        </tbody>
+    </table>
+</div>

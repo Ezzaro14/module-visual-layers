@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Ezzar_VisualLayers::menu"
+             title="Ezzar"
+             module="Ezzar_VisualLayers"
+             sortOrder="90"
+             parent="Magento_Catalog::catalog"
+             resource="Ezzar_VisualLayers::visuals"/>
+        <add id="Ezzar_VisualLayers::visuals"
+             title="Visual Layers"
+             module="Ezzar_VisualLayers"
+             sortOrder="10"
+             parent="Ezzar_VisualLayers::menu"
+             action="visuallayers/visual/index"
+             resource="Ezzar_VisualLayers::visuals"/>
+    </menu>
+</config>

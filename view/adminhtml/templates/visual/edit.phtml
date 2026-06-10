@@ -1,0 +1,435 @@
+<?php
+declare(strict_types=1);
+
+use Ezzar\VisualLayers\Block\Adminhtml\Visual\Edit\Form;
+use Magento\Framework\Escaper;
+
+/** @var Form $block */
+/** @var Escaper $escaper */
+
+$visual = $block->getVisual();
+$layers = $block->getLayers();
+$image = (string) $visual->getData('image');
+$imageUrl = $block->getImageUrl($image);
+$rowIndex = 0;
+?>
+
+<style>
+    .visual-layer-admin-preview {
+        position: relative;
+        display: block;
+        width: 100%;
+        max-width: 520px;
+        margin-top: 12px;
+        line-height: 0;
+    }
+
+    .visual-layer-admin-preview img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid #d6d6d6;
+    }
+
+    .visual-layer-admin-marker {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: 1px solid #514943;
+        border-radius: 999px;
+        background: #fff;
+        color: #1f2937;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, .2);
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+        z-index: 1;
+    }
+
+    .visual-layer-admin-marker.is-active {
+        background: #514943;
+        color: #fff;
+    }
+
+    .visual-layer-admin-marker.is-dragging {
+        cursor: grabbing;
+        z-index: 2;
+    }
+</style>
+
+<form method="post"
+      action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>"
+      enctype="multipart/form-data"
+      id="visual-layer-visual-form">
+    <?= $block->getBlockHtml('formkey') ?>
+    <input type="hidden" name="visual_id" value="<?= (int) $visual->getId() ?>">
+    <input type="hidden" name="existing_image" value="<?= $escaper->escapeHtmlAttr($image) ?>">
+
+    <div class="page-main-actions">
+        <div class="page-actions">
+            <a class="action-secondary" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
+                <?= $escaper->escapeHtml(__('Back')) ?>
+            </a>
+            <button class="action-primary" type="submit">
+                <?= $escaper->escapeHtml(__('Save Visual Layer')) ?>
+            </button>
+        </div>
+    </div>
+
+    <fieldset class="admin__fieldset">
+        <legend class="admin__legend">
+            <span><?= $escaper->escapeHtml(__('Visual')) ?></span>
+        </legend>
+
+        <div class="admin__field required">
+            <label class="admin__field-label" for="title">
+                <span><?= $escaper->escapeHtml(__('Title')) ?></span>
+            </label>
+            <div class="admin__field-control">
+                <input class="admin__control-text"
+                       id="title"
+                       name="title"
+                       type="text"
+                       required
+                       value="<?= $escaper->escapeHtmlAttr((string) $visual->getData('title')) ?>">
+            </div>
+        </div>
+
+        <div class="admin__field">
+            <label class="admin__field-label" for="frontend_title">
+                <span><?= $escaper->escapeHtml(__('Frontend Title')) ?></span>
+            </label>
+            <div class="admin__field-control">
+                <input class="admin__control-text"
+                       id="frontend_title"
+                       name="frontend_title"
+                       type="text"
+                       value="<?= $escaper->escapeHtmlAttr((string) $visual->getData('frontend_title')) ?>">
+                <p class="note">
+                    <?= $escaper->escapeHtml(__('Optional PDP heading; title remains the internal admin label.')) ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="admin__field">
+            <label class="admin__field-label" for="is_active">
+                <span><?= $escaper->escapeHtml(__('Active')) ?></span>
+            </label>
+            <div class="admin__field-control">
+                <select class="admin__control-select" id="is_active" name="is_active">
+                    <option value="1"<?= ((int) $visual->getData('is_active') !== 0) ? ' selected' : '' ?>>
+                        <?= $escaper->escapeHtml(__('Yes')) ?>
+                    </option>
+                    <option value="0"<?= ((int) $visual->getData('is_active') === 0) ? ' selected' : '' ?>>
+                        <?= $escaper->escapeHtml(__('No')) ?>
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="admin__field required">
+            <label class="admin__field-label" for="image">
+                <span><?= $escaper->escapeHtml(__('Layered Image')) ?></span>
+            </label>
+            <div class="admin__field-control">
+                <input class="admin__control-file" id="image" name="image" type="file" accept="image/*">
+                <div class="visual-layer-admin-preview" id="visual-layer-preview">
+                    <img id="visual-layer-image-preview"
+                         src="<?= $imageUrl ? $escaper->escapeUrl($imageUrl) : '' ?>"
+                         alt=""
+                         style="<?= $imageUrl ? '' : 'display: none;' ?>">
+                    <div id="visual-layer-marker-preview"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin__field">
+            <label class="admin__field-label" for="image_alt">
+                <span><?= $escaper->escapeHtml(__('Image Alt Text')) ?></span>
+            </label>
+            <div class="admin__field-control">
+                <input class="admin__control-text"
+                       id="image_alt"
+                       name="image_alt"
+                       type="text"
+                       value="<?= $escaper->escapeHtmlAttr((string) $visual->getData('image_alt')) ?>">
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="admin__fieldset">
+        <legend class="admin__legend">
+            <span><?= $escaper->escapeHtml(__('Layers And Markers')) ?></span>
+        </legend>
+
+        <p class="note">
+            <?= $escaper->escapeHtml(__('Marker X/Y are percentages from the image top-left corner.')) ?>
+            <?= $escaper->escapeHtml(__('Focus a layer row, then click the image preview to set that row position.')) ?>
+        </p>
+
+        <div class="admin__data-grid-wrap">
+            <table class="data-grid" id="visual-layer-rows">
+                <thead>
+                <tr>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Active')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Order')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Marker')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Title')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('What It Is')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('What It Does')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('X %')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Y %')) ?></th>
+                    <th class="data-grid-th"><?= $escaper->escapeHtml(__('Remove')) ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($layers as $layer): ?>
+                    <?php $index = $rowIndex++; ?>
+                    <tr data-layer-row="<?= (int) $index ?>">
+                        <td>
+                            <select name="layers[<?= (int) $index ?>][is_active]" class="admin__control-select">
+                                <option value="1"<?= ((int) $layer->getData('is_active') !== 0) ? ' selected' : '' ?>><?= $escaper->escapeHtml(__('Yes')) ?></option>
+                                <option value="0"<?= ((int) $layer->getData('is_active') === 0) ? ' selected' : '' ?>><?= $escaper->escapeHtml(__('No')) ?></option>
+                            </select>
+                        </td>
+                        <td><input name="layers[<?= (int) $index ?>][sort_order]" data-layer-sort class="admin__control-text" type="number" min="1" value="<?= (int) $layer->getData('sort_order') ?>"></td>
+                        <td><input name="layers[<?= (int) $index ?>][marker_label]" data-layer-label class="admin__control-text" type="text" value="<?= $escaper->escapeHtmlAttr((string) $layer->getData('marker_label')) ?>"></td>
+                        <td><input name="layers[<?= (int) $index ?>][title]" class="admin__control-text" type="text" value="<?= $escaper->escapeHtmlAttr((string) $layer->getData('title')) ?>"></td>
+                        <td><textarea name="layers[<?= (int) $index ?>][what_it_is]" class="admin__control-textarea" rows="3"><?= $escaper->escapeHtml((string) $layer->getData('what_it_is')) ?></textarea></td>
+                        <td><textarea name="layers[<?= (int) $index ?>][what_it_does]" class="admin__control-textarea" rows="3"><?= $escaper->escapeHtml((string) $layer->getData('what_it_does')) ?></textarea></td>
+                        <td><input name="layers[<?= (int) $index ?>][marker_x]" data-layer-x class="admin__control-text" type="number" min="0" max="100" step="1" value="<?= $escaper->escapeHtmlAttr((string) $layer->getData('marker_x')) ?>"></td>
+                        <td><input name="layers[<?= (int) $index ?>][marker_y]" data-layer-y class="admin__control-text" type="number" min="0" max="100" step="1" value="<?= $escaper->escapeHtmlAttr((string) $layer->getData('marker_y')) ?>"></td>
+                        <td><button type="button" class="action-delete" data-remove-row><?= $escaper->escapeHtml(__('Remove')) ?></button></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <button type="button" class="action-secondary" id="add-visual-layer-row">
+            <?= $escaper->escapeHtml(__('Add Layer')) ?>
+        </button>
+    </fieldset>
+</form>
+
+<template id="visual-layer-row-template">
+    <tr data-layer-row="__INDEX__">
+        <td>
+            <select name="layers[__INDEX__][is_active]" class="admin__control-select">
+                <option value="1" selected><?= $escaper->escapeHtml(__('Yes')) ?></option>
+                <option value="0"><?= $escaper->escapeHtml(__('No')) ?></option>
+            </select>
+        </td>
+        <td><input name="layers[__INDEX__][sort_order]" data-layer-sort class="admin__control-text" type="number" min="1" value="1"></td>
+        <td><input name="layers[__INDEX__][marker_label]" data-layer-label class="admin__control-text" type="text" value="1"></td>
+        <td><input name="layers[__INDEX__][title]" class="admin__control-text" type="text"></td>
+        <td><textarea name="layers[__INDEX__][what_it_is]" class="admin__control-textarea" rows="3"></textarea></td>
+        <td><textarea name="layers[__INDEX__][what_it_does]" class="admin__control-textarea" rows="3"></textarea></td>
+        <td><input name="layers[__INDEX__][marker_x]" data-layer-x class="admin__control-text" type="number" min="0" max="100" step="1" value="50"></td>
+        <td><input name="layers[__INDEX__][marker_y]" data-layer-y class="admin__control-text" type="number" min="0" max="100" step="1" value="50"></td>
+        <td><button type="button" class="action-delete" data-remove-row><?= $escaper->escapeHtml(__('Remove')) ?></button></td>
+    </tr>
+</template>
+
+<script>
+require(['domReady!'], function () {
+    let rowIndex = <?= (int) $rowIndex ?>;
+    const table = document.querySelector('#visual-layer-rows tbody');
+    const template = document.querySelector('#visual-layer-row-template').innerHTML;
+    const previewWrap = document.querySelector('#visual-layer-preview');
+    const preview = document.querySelector('#visual-layer-image-preview');
+    const markerPreview = document.querySelector('#visual-layer-marker-preview');
+    const imageInput = document.querySelector('#image');
+    let activeRow = table.querySelector('tr');
+    let draggingRow = null;
+
+    function clampPercent(value) {
+        const numeric = Number.parseFloat(value);
+        return Math.max(0, Math.min(100, Number.isFinite(numeric) ? numeric : 0));
+    }
+
+    function rowIndexValue(row) {
+        return row ? row.getAttribute('data-layer-row') : '';
+    }
+
+    function markerLabel(row) {
+        const label = row.querySelector('[data-layer-label]').value.trim();
+        const sort = row.querySelector('[data-layer-sort]').value.trim();
+
+        return label || sort || '?';
+    }
+
+    function nextSortOrder() {
+        let maxSortOrder = 0;
+
+        table.querySelectorAll('[data-layer-sort]').forEach(function (input) {
+            const sortOrder = Number.parseInt(input.value, 10);
+            maxSortOrder = Number.isFinite(sortOrder) ? Math.max(maxSortOrder, sortOrder) : maxSortOrder;
+        });
+
+        return maxSortOrder + 1;
+    }
+
+    function positionFromPointer(event) {
+        const rect = preview.getBoundingClientRect();
+
+        return {
+            x: Math.round((event.clientX - rect.left) / rect.width * 100),
+            y: Math.round((event.clientY - rect.top) / rect.height * 100)
+        };
+    }
+
+    function setMarkerPosition(row, position) {
+        row.querySelector('[data-layer-x]').value = clampPercent(position.x);
+        row.querySelector('[data-layer-y]').value = clampPercent(position.y);
+    }
+
+    function moveRenderedMarker(row) {
+        const marker = markerPreview.querySelector('[data-preview-row="' + rowIndexValue(row) + '"]');
+
+        if (!marker) {
+            return;
+        }
+
+        // Move the live marker directly so dragging stays visually continuous.
+        marker.style.left = clampPercent(row.querySelector('[data-layer-x]').value) + '%';
+        marker.style.top = clampPercent(row.querySelector('[data-layer-y]').value) + '%';
+    }
+
+    function renderMarkers() {
+        markerPreview.innerHTML = '';
+
+        table.querySelectorAll('tr').forEach(function (row) {
+            const x = clampPercent(row.querySelector('[data-layer-x]').value);
+            const y = clampPercent(row.querySelector('[data-layer-y]').value);
+            const marker = document.createElement('button');
+
+            marker.type = 'button';
+            marker.className = 'visual-layer-admin-marker'
+                + (row === activeRow ? ' is-active' : '');
+            marker.style.left = x + '%';
+            marker.style.top = y + '%';
+            marker.textContent = markerLabel(row);
+            marker.setAttribute('data-preview-row', rowIndexValue(row));
+
+            markerPreview.appendChild(marker);
+        });
+    }
+
+    // Percent coordinates bind markers to the rendered image box during responsive scaling.
+    document.querySelector('#add-visual-layer-row').addEventListener('click', function () {
+        const sortOrder = nextSortOrder();
+
+        table.insertAdjacentHTML('beforeend', template.replace(/__INDEX__/g, String(rowIndex++)));
+        activeRow = table.querySelector('tr:last-child');
+        activeRow.querySelector('[data-layer-sort]').value = sortOrder;
+        activeRow.querySelector('[data-layer-label]').value = sortOrder;
+        renderMarkers();
+    });
+
+    table.addEventListener('focusin', function (event) {
+        activeRow = event.target.closest('tr') || activeRow;
+        renderMarkers();
+    });
+
+    table.addEventListener('input', function () {
+        renderMarkers();
+    });
+
+    table.addEventListener('click', function (event) {
+        if (event.target.matches('[data-remove-row]')) {
+            event.target.closest('tr').remove();
+            activeRow = table.querySelector('tr');
+            renderMarkers();
+        }
+    });
+
+    markerPreview.addEventListener('click', function (event) {
+        const marker = event.target.closest('[data-preview-row]');
+        if (!marker) {
+            return;
+        }
+
+        activeRow = table.querySelector('[data-layer-row="' + marker.getAttribute('data-preview-row') + '"]') || activeRow;
+        renderMarkers();
+    });
+
+    markerPreview.addEventListener('pointerdown', function (event) {
+        const marker = event.target.closest('[data-preview-row]');
+
+        if (!marker) {
+            return;
+        }
+
+        event.preventDefault();
+        activeRow = table.querySelector('[data-layer-row="' + marker.getAttribute('data-preview-row') + '"]') || activeRow;
+        draggingRow = activeRow;
+        markerPreview.querySelectorAll('.visual-layer-admin-marker').forEach(function (renderedMarker) {
+            renderedMarker.classList.toggle('is-active', renderedMarker === marker);
+            renderedMarker.classList.remove('is-dragging');
+        });
+        marker.classList.add('is-dragging');
+    });
+
+    document.addEventListener('pointermove', function (event) {
+        if (!draggingRow) {
+            return;
+        }
+
+        event.preventDefault();
+        setMarkerPosition(draggingRow, positionFromPointer(event));
+        moveRenderedMarker(draggingRow);
+    });
+
+    document.addEventListener('pointerup', function () {
+        if (!draggingRow) {
+            return;
+        }
+
+        draggingRow = null;
+        renderMarkers();
+    });
+
+    document.addEventListener('pointercancel', function () {
+        if (!draggingRow) {
+            return;
+        }
+
+        draggingRow = null;
+        renderMarkers();
+    });
+
+    previewWrap.addEventListener('click', function (event) {
+        if (event.target.closest('[data-preview-row]')) {
+            return;
+        }
+
+        if (!activeRow) {
+            return;
+        }
+
+        setMarkerPosition(activeRow, positionFromPointer(event));
+        renderMarkers();
+    });
+
+    imageInput.addEventListener('change', function () {
+        const file = imageInput.files && imageInput.files[0];
+        if (!file) {
+            return;
+        }
+
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+        renderMarkers();
+    });
+
+    renderMarkers();
+});
+</script>
