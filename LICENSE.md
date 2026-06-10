@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Mike Twardowski
+Copyright (c) 2026 Ezzaro14
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
