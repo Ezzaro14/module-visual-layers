@@ -25,6 +25,16 @@ The module is designed for Hyva product pages. The frontend template uses Tailwi
 
 ## Installation
 
+### Composer (recommended)
+
+```bash
+composer require ezzaro14/module-visual-layers 
+bin/magento module:enable Ezzar_VisualLayers
+bin/magento setup:upgrade
+bin/magento setup:di:compile
+bin/magento setup:static-content:deploy
+```
+
 ### Install From GitHub
 
 ```bash
@@ -40,7 +50,7 @@ From the Magento root:
 bin/magento module:enable Ezzar_VisualLayers
 bin/magento setup:upgrade
 bin/magento setup:di:compile
-bin/magento setup:static-content:deploy -f
+bin/magento setup:static-content:deploy
 bin/magento cache:clean
 ```
 ## Database And Attribute Changes
