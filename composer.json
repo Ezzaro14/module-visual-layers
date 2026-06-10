@@ -17,5 +17,6 @@
     "magento/module-backend": "*",
     "magento/module-catalog": "*",
     "magento/module-media-storage": "*"
+    "hyva-themes/magento2-theme-module": "^1.3"
   }
 }
