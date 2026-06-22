@@ -1,6 +1,6 @@
 # Ezzar Visual Layers
 
-`Ezzar_VisualLayers` is a Magento 2 module for adding editable product-page visual layer sections. It lets you upload a layered image, place numbered markers on that image, and connect each marker to product information.
+`Ezzar_VisualLayers` is a Magento 2 module for adding editable product-page visual layer sections. It lets you upload a layered image, place numbered markers on that image, and connect each marker to [...]
 
 The module is designed for Hyva product pages. The frontend template uses Tailwind CSS utility classes and Alpine.js.
 
@@ -19,17 +19,11 @@ The module is designed for Hyva product pages. The frontend template uses Tailwi
 
 ### Admin Panel
 
-<video width="100%" controls>
-  <source src="demo/admin-panel.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Admin Panel Demo](demo/admin.gif)
 
 ### Frontend
 
-<video width="100%" controls>
-  <source src="demo/frontend.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Frontend Demo](demo/frontend.gif)
 
 ## Requirements
 
