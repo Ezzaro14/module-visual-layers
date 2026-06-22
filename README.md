@@ -11,7 +11,7 @@ The module is designed for Hyva product pages. The frontend template uses Tailwi
 - Add any number of marker/layer rows.
 - Set marker X/Y positions as image-relative percentages.
 - Drag or click markers in the admin preview to adjust marker positions.
-![til](./demo/admin-panel.gif)
+![til](./demo/admin-panel.mp4)
 - Responsive frontend markers that stay attached to the image as it scales.
 - Frontend accordion content linked to each image marker.
 - Product attribute source model for assigning visuals to products.
